@@ -4,10 +4,9 @@ import win32gui
 import win32ui
 import win32con
 import cv2
-import keyboard
 
-def screenshot(w=800, h=450):
-    hwnd = win32gui.FindWindow(None, "Trackmania")
+def screenshot(w=800, h=450, frame="Trackmania"):
+    hwnd = win32gui.FindWindow(None, frame)
     x, y, x1, y1 = win32gui.GetWindowRect(hwnd)
     if x1-x == w:
         # fullscreen
