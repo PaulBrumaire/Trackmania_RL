@@ -1,0 +1,81 @@
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Flatten, Reshape
+from tensorflow.keras.optimizers import Adam
+
+def build_model(states, actions, dim=True):
+    model = Sequential()
+    if(dim):
+        model.add(Flatten(input_shape=(1, states[0])))
+    model.add(Dense(24, activation='relu', input_shape=states))
+    model.add(Dense(24, activation='relu'))
+    model.add(Dense(actions, activation='linear'))
+    return model
+
+from rl.agents import DQNAgent
+from rl.policy import LinearAnnealedPolicy, BoltzmannQPolicy, EpsGreedyQPolicy
+from rl.memory import SequentialMemory
+
+def build_agent(model, actions):
+
+    policy = BoltzmannQPolicy()
+    memory = SequentialMemory(limit=50000, window_length=1)
+    dqn = DQNAgent(model=model, memory=memory, policy=policy,
+                   nb_actions=actions, nb_steps_warmup=100, target_model_update=1e-2, batch_size=1)
+    return dqn
+
+import rl.callbacks
+import numpy as np
+
+
+class EpisodeLogger(rl.callbacks.Callback):
+    def __init__(self):
+        self.observations = {}
+        self.rewards = {}
+        self.actions = {}
+        self.loss = {}
+        self.mae = {}
+        self.mean_q = {}
+
+    def on_episode_begin(self, episode, logs):
+        self.observations[episode] = []
+        self.rewards[episode] = []
+        self.actions[episode] = []
+        self.loss[episode] = []
+        self.mae[episode] = []
+        self.mean_q[episode] = []
+
+    def on_step_end(self, step, logs):
+        episode = logs['episode']
+        self.observations[episode].append(logs['observation'])
+        self.rewards[episode].append(logs['reward'])
+        self.actions[episode].append(logs['action'])
+        self.loss[episode].append(logs['metrics'][0])
+        self.mae[episode].append(logs['metrics'][1])
+        self.mean_q[episode].append(logs['metrics'][2])
+
+class EpisodeLoggerTest(rl.callbacks.Callback):
+    def __init__(self):
+        self.observations = {}
+        self.rewards = {}
+        self.actions = {}
+
+    def on_episode_begin(self, episode, logs):
+        self.observations[episode] = []
+        self.rewards[episode] = []
+        self.actions[episode] = []
+
+
+    def on_step_end(self, step, logs):
+        episode = logs['episode']
+        self.observations[episode].append(logs['observation'])
+        self.rewards[episode].append(logs['reward'])
+        self.actions[episode].append(logs['action'])
+
+def sumReward(arr):
+    s = 0
+    (m, n) = np.array([arr]).shape
+    out = np.zeros(((m, n)))
+    for i in range(n):
+        out[0, i] = arr[i]+s
+        s = out[0, i]
+    return out[0]

@@ -14,7 +14,8 @@ def initCrop(img, l, u, r, d):
 
 def imgReshape(img):
     d = 1
-    img = initCrop(img, 0, img.size[1]//2, 0, img.size[1]//3)
+    img = initCrop(img, 0, img.size[1]//2, 0, 0)
+    #0, img.size[1]//2, 0, img.size[1]//3
     img = img.resize((w, h), Image.ANTIALIAS)
     if d == 1:
         img = img.convert('L')
