@@ -17,10 +17,11 @@ from rl.memory import SequentialMemory
 
 def build_agent(model, actions):
 
-    policy = BoltzmannQPolicy()
-    memory = SequentialMemory(limit=50000, window_length=1)
-    dqn = DQNAgent(model=model, memory=memory, policy=policy,
-                   nb_actions=actions, nb_steps_warmup=100, target_model_update=1e-2, batch_size=1)
+    policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=1., value_min=.1, value_test=.05,
+                              nb_steps=100000)
+    memory = SequentialMemory(limit=100000, window_length=1)
+    dqn = DQNAgent(model=model, memory=memory, policy=policy, gamma=.99, train_interval=1, delta_clip=1.,
+                   nb_actions=actions, nb_steps_warmup=10000, target_model_update=10000, batch_size=1)
     return dqn
 
 import rl.callbacks
